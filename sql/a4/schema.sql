@@ -1,0 +1,3 @@
+DROP SCHEMA IF EXISTS "a4" CASCADE;
+CREATE SCHEMA "a4";
+SET search_path TO "a4";
