@@ -10,15 +10,32 @@ The goal is to figure out how to achieve the following:
 - Migrate the schema
 
 
-## Install
+## Quick Install
 
-    ./install
+    make deps db
 
-You can specify the host, database or version via the env vars HOST,
-DATABASE and VERSION. By default, HOST=localhost, DATABASE=pooldin and
-VERSION is the latest version. For specific help:
+Or...
 
-    ./install help
+    make
+    make db
+
+
+## Commands
+
+Commands are defined via the [cement2][cement2] library and executed
+via the manage.py script.
+
+Help
+
+    python manage.py
+
+Shell
+
+    python manage.py shell --help
+
+Install
+
+    python manage.py install --help
 
 
 ## Management
@@ -42,4 +59,5 @@ This repo will track all schema requirements not manageable via Navicat.
 - Figure out migrations
 - Figure out versioning
 - Figure out fixtures
-- Implement a management cli
+
+[cement2]: http://cement.readthedocs.org/en/latest/

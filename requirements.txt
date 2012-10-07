@@ -1,0 +1,9 @@
+cement==2.0.2
+pytz==2012d
+psycopg2==2.4.5
+cdecimal==2.3
+blinker==1.2
+Flask==0.9
+flask-sqlalchemy==0.16
+
+ipython==0.13
