@@ -8,7 +8,7 @@ CREATE TABLE "user" (
 "created" timestamptz NOT NULL,
 "modified" timestamptz NOT NULL,
 "remote_ip" cidr,
-PRIMARY KEY ("id") 
+PRIMARY KEY ("id")
 );
 
 CREATE UNIQUE INDEX "user_username_index" ON "user" ("username");
@@ -21,7 +21,7 @@ CREATE TABLE "user_meta" (
 "create" timestamptz NOT NULL,
 "modified" timestamptz NOT NULL,
 "remote_ip" cidr,
-PRIMARY KEY ("id") 
+PRIMARY KEY ("id")
 );
 
 CREATE INDEX "user_meda_user_id_index" ON "user_meta" ("user_id" ASC);
@@ -37,7 +37,7 @@ CREATE TABLE "balance" (
 "created" timestamptz NOT NULL,
 "modified" timestamptz NOT NULL,
 "remote_ip" cidr,
-PRIMARY KEY ("id") 
+PRIMARY KEY ("id")
 );
 
 COMMENT ON COLUMN "balance"."type" IS 'enumerations: {''user'', ''campaign''}';
@@ -52,7 +52,7 @@ CREATE TABLE "currency" (
 "sign" varchar(1) NOT NULL,
 "created" timestamptz NOT NULL,
 "modified" timestamptz NOT NULL,
-PRIMARY KEY ("id") 
+PRIMARY KEY ("id")
 );
 
 CREATE INDEX "balance_number_index" ON "currency" ("number");
@@ -65,7 +65,7 @@ CREATE TABLE "transaction" (
 "credit" decimal(24,4) NOT NULL,
 "created" timestamptz NOT NULL,
 "remote_ip" cidr NOT NULL,
-PRIMARY KEY ("id") 
+PRIMARY KEY ("id")
 );
 
 COMMENT ON COLUMN "transaction"."campaign_goal_id" IS 'Used to link a transaction with a specific campaign goal for auditing/analytics purposes.';
@@ -78,7 +78,7 @@ CREATE TABLE "transfer" (
 "credit" decimal(24,4) NOT NULL,
 "created" timestamptz NOT NULL,
 "remote_ip" cidr NOT NULL,
-PRIMARY KEY ("id") 
+PRIMARY KEY ("id")
 );
 
 CREATE TABLE "exchange" (
@@ -91,7 +91,7 @@ CREATE TABLE "exchange" (
 "credit" decimal(24,4) NOT NULL,
 "created" timestamptz NOT NULL,
 "remote_ip" cidr NOT NULL,
-PRIMARY KEY ("id") 
+PRIMARY KEY ("id")
 );
 
 CREATE TABLE "external_ledger" (
@@ -106,7 +106,7 @@ CREATE TABLE "external_ledger" (
 "credit" decimal(24,4) NOT NULL,
 "created" timestamptz NOT NULL,
 "remote_ip" cidr NOT NULL,
-PRIMARY KEY ("id") 
+PRIMARY KEY ("id")
 );
 
 CREATE TABLE "fee" (
@@ -116,7 +116,7 @@ CREATE TABLE "fee" (
 "created" timestamptz NOT NULL,
 "modified" timestamptz NOT NULL,
 "remote_ip" cidr NOT NULL,
-PRIMARY KEY ("id") 
+PRIMARY KEY ("id")
 );
 
 CREATE TABLE "community" (
@@ -129,7 +129,7 @@ CREATE TABLE "community" (
 "created" timestamptz NOT NULL,
 "modified" timestamptz NOT NULL,
 "remote_ip" cidr,
-PRIMARY KEY ("id") 
+PRIMARY KEY ("id")
 );
 
 CREATE TABLE "community_goal" (
@@ -143,7 +143,7 @@ CREATE TABLE "community_goal" (
 "created" timestamptz NOT NULL,
 "modified" timestamptz NOT NULL,
 "remote_ip" cidr,
-PRIMARY KEY ("id") 
+PRIMARY KEY ("id")
 );
 
 CREATE TABLE "community_goal_meta" (
@@ -155,7 +155,7 @@ CREATE TABLE "community_goal_meta" (
 "created" timestamptz NOT NULL,
 "modified" timestamptz NOT NULL,
 "remote_ip" cidr,
-PRIMARY KEY ("id") 
+PRIMARY KEY ("id")
 );
 
 CREATE TABLE "community_goal_meta_key" (
@@ -165,7 +165,7 @@ CREATE TABLE "community_goal_meta_key" (
 "created" timestamptz NOT NULL,
 "modified" timestamptz NOT NULL,
 "remote_ip" cidr,
-PRIMARY KEY ("id") 
+PRIMARY KEY ("id")
 );
 
 CREATE TABLE "community_association" (
@@ -177,7 +177,7 @@ CREATE TABLE "community_association" (
 "created" timestamptz NOT NULL,
 "modified" timestamptz NOT NULL,
 "remote_ip" cidr,
-PRIMARY KEY ("id") 
+PRIMARY KEY ("id")
 );
 
 CREATE TABLE "invitee" (
@@ -190,7 +190,7 @@ CREATE TABLE "invitee" (
 "created" timestamptz NOT NULL,
 "modified" timestamptz NOT NULL,
 "remote_ip" cidr,
-PRIMARY KEY ("id") 
+PRIMARY KEY ("id")
 );
 
 COMMENT ON COLUMN "invitee"."id" IS 'Composed of sha1(email + campaign_id) to uniquely identify an invitation.';
@@ -206,7 +206,7 @@ CREATE TABLE "internal_ledger" (
 "credit" decimal(24,4) NOT NULL,
 "created" timestamptz NOT NULL,
 "remote_ip" cidr NOT NULL,
-PRIMARY KEY ("id") 
+PRIMARY KEY ("id")
 );
 
 CREATE TABLE "purchase" (
@@ -227,7 +227,7 @@ CREATE TABLE "purchase" (
 "created" timestamptz NOT NULL,
 "modified" timestamptz NOT NULL,
 "remote_ip" cidr,
-PRIMARY KEY ("id") 
+PRIMARY KEY ("id")
 );
 
 CREATE TABLE "user_purchase" (
@@ -237,9 +237,8 @@ CREATE TABLE "user_purchase" (
 "created" timestamptz NOT NULL,
 "modified" timestamptz NOT NULL,
 "remote_ip" cidr,
-PRIMARY KEY ("id") 
+PRIMARY KEY ("id")
 );
-
 
 ALTER TABLE "user_meta" ADD CONSTRAINT "a4_user_meta_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "user" ("id");
 ALTER TABLE "balance" ADD CONSTRAINT "a4_balance_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "user" ("id");
@@ -266,4 +265,3 @@ ALTER TABLE "user_purchase" ADD CONSTRAINT "a4_user_purchase_user_id_fk" FOREIGN
 ALTER TABLE "user_purchase" ADD CONSTRAINT "a4_user_purchase_purchase_id_fk" FOREIGN KEY ("purchase_id") REFERENCES "purchase" ("id");
 ALTER TABLE "purchase" ADD CONSTRAINT "a4_purchase_refund_external_ledger_id_fk" FOREIGN KEY ("refund_ledger_id") REFERENCES "external_ledger" ("id");
 ALTER TABLE "purchase" ADD CONSTRAINT "a4_purchase_purchase_external_ledger_id_fk" FOREIGN KEY ("purchase_ledger_id") REFERENCES "external_ledger" ("id");
-
