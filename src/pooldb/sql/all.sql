@@ -40,7 +40,7 @@ CREATE TABLE "balance" (
 PRIMARY KEY ("id") 
 );
 
-COMMENT ON COLUMN "balance"."type" IS 'enumerations: {''user'', ''community''}';
+COMMENT ON COLUMN "balance"."type" IS 'enumerations: [''user'', ''community'']';
 
 CREATE TABLE "currency" (
 "id" serial8 NOT NULL,
@@ -109,6 +109,8 @@ CREATE TABLE "external_ledger" (
 PRIMARY KEY ("id") 
 );
 
+COMMENT ON COLUMN "external_ledger"."record_table" IS 'enumerations: [''transaction'', ''exchange'', ''transfer'']';
+
 CREATE TABLE "fee" (
 "id" serial8 NOT NULL,
 "name" varchar(64) NOT NULL,
@@ -146,6 +148,8 @@ CREATE TABLE "community_goal" (
 "remote_ip" cidr,
 PRIMARY KEY ("id") 
 );
+
+COMMENT ON COLUMN "community_goal"."type" IS 'enumerations: [''purchase'', ''petition'']';
 
 CREATE TABLE "community_goal_meta" (
 "id" serial8 NOT NULL,
