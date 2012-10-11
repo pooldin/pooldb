@@ -6,6 +6,6 @@ root = os.path.abspath(root)
 src = os.path.join(root, 'src')
 sys.path.append(src)
 
-from pooldb import cli
+from pooldb.cli import App
 
-cli.run()
+App.execute()

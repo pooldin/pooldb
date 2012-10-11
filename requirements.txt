@@ -7,3 +7,4 @@ Flask==0.9
 flask-sqlalchemy==0.16
 
 ipython==0.13
+-e git+ssh://git@github.com/pooldin/pooldlib.git#egg=pooldlib
