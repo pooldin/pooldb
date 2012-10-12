@@ -2,6 +2,10 @@ from pooldlib import cli
 from pooldb.cli.install import InstallController
 
 
+def run(*args, **kw):
+    App.execute(*args, **kw)
+
+
 class RootController(cli.RootController):
     class Meta:
         label = 'base'

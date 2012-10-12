@@ -1,11 +1,11 @@
 import os
 import sys
 
-root = os.path.dirname(__name__)
-root = os.path.abspath(root)
-src = os.path.join(root, 'src')
-sys.path.append(src)
+DIR = os.path.dirname(__name__)
+DIR = os.path.abspath(DIR)
+SRC = os.path.join(DIR, 'src')
+sys.path.append(SRC)
 
-from pooldb.cli import App
+from pooldb import cli
 
-App.execute()
+cli.run()
