@@ -171,7 +171,8 @@ CREATE TABLE "community_goal_meta_key" (
 "created" timestamptz NOT NULL,
 "modified" timestamptz NOT NULL,
 "remote_ip" cidr,
-CONSTRAINT "id" PRIMARY KEY ("id", "key") 
+CONSTRAINT "id" PRIMARY KEY ("id", "key") ,
+UNIQUE ("key")
 );
 
 CREATE TABLE "community_association" (
