@@ -11,6 +11,13 @@ class InstallController(controller.CementBaseController):
     class Meta:
         label = 'install'
         description = "Install the Poold.in database."
+        arguments = [
+            (['-s', '--schema'], {
+                'action': 'store',
+                'help': 'Schema to install into',
+                'default': 'public',
+            }),
+        ]
 
     @controller.expose(hide=True, help='Install the database')
     def default(self):
@@ -20,14 +27,21 @@ class InstallController(controller.CementBaseController):
         })
 
         try:
+            schema = self.pargs.schema
+
+            drop = 'DROP SCHEMA IF EXISTS "%s" CASCADE;'
+            drop %= schema
+
+            db.session.execute(drop)
+            db.session.execute('CREATE SCHEMA "%s";' % schema)
+            db.session.execute('SET search_path TO "%s";' % schema)
             db.session.execute(self.sql())
             db.session.commit()
         finally:
             db.session.remove()
 
     def sql(self):
-        sql = self.load_sql('schema.sql')
-        sql += self.load_sql('types.sql')
+        sql = self.load_sql('types.sql')
         sql += self.load_sql('all.sql')
         return sql
 
