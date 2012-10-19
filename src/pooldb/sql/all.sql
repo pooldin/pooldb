@@ -18,7 +18,7 @@ CREATE TABLE "user_meta" (
 "user_id" serial8 NOT NULL,
 "key" varchar(255) NOT NULL,
 "value" text NOT NULL,
-"create" timestamptz NOT NULL,
+"created" timestamptz NOT NULL,
 "modified" timestamptz NOT NULL,
 "remote_ip" cidr,
 PRIMARY KEY ("id") 
