@@ -258,19 +258,21 @@ CREATE TABLE "community_goal_ledger" (
 "remote_ip" cidr,
 "community_id" int8 NOT NULL,
 "community_goal_id" int8 NOT NULL,
-"target_type" community_goal_ledger_target_type_enum NOT NULL,
-"target_id" int8 NOT NULL,
+"party_type" community_goal_ledger_target_type_enum NOT NULL,
+"party_id" int8 NOT NULL,
 "debit" decimal(24,4),
 "credit" decimal(24,4),
 PRIMARY KEY ("id") 
 );
 
-CREATE INDEX "community_goal_ledger_community_community_goal_index" ON "community_goal_ledger" ("community_id" ASC, "community_goal_id" ASC);
-COMMENT ON COLUMN "community_goal_ledger"."target_type" IS 'target_type_enum: ''user'', ''community''';
-COMMENT ON COLUMN "community_goal_ledger"."target_id" IS 'The id of the target user/community.  Not constrained by foreign keys.';
+CREATE INDEX "community_goal_ledger_community_goal_id_index" ON "community_goal_ledger" ("community_goal_id" ASC);
+CREATE INDEX "community_goal_ledger_community_id_index" ON "community_goal_ledger" ("community_id" ASC);
+CREATE INDEX "community_goal_ledger_party_type_index" ON "community_goal_ledger" ("party_type" ASC);
+CREATE INDEX "community_goal_ledger_party_id_index" ON "community_goal_ledger" ("party_id" ASC);
+COMMENT ON COLUMN "community_goal_ledger"."party_type" IS 'party_type_enum: ''user'', ''community''';
+COMMENT ON COLUMN "community_goal_ledger"."party_id" IS 'The id of the target user/community.  Not constrained by foreign keys.';
 
 CREATE TABLE "community_goal_association" (
-"id" serial8 NOT NULL,
 "created" timestamptz NOT NULL,
 "modified" timestamptz NOT NULL,
 "remote_ip" cidr,
@@ -278,7 +280,7 @@ CREATE TABLE "community_goal_association" (
 "community_id" int8 NOT NULL,
 "community_goal_id" int8 NOT NULL,
 "participation" participation_enum,
-PRIMARY KEY ("id") 
+PRIMARY KEY ("community_id", "user_id", "community_goal_id") 
 );
 
 CREATE INDEX "community_goal_association_community_id_index" ON "community_goal_association" ("community_id" ASC);
