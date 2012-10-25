@@ -12,6 +12,11 @@ class InstallController(controller.CementBaseController):
         label = 'install'
         description = "Install the Poold.in database."
         arguments = [
+            (['-c', '--connection'], {
+                'action': 'store',
+                'help': 'Connection string to use for the database connection',
+                'default': 'postgresql://localhost/pooldin',
+            }),
             (['-s', '--schema'], {
                 'action': 'store',
                 'help': 'Schema to install into',
@@ -21,8 +26,10 @@ class InstallController(controller.CementBaseController):
 
     @controller.expose(hide=True, help='Install the database')
     def default(self):
+        connection = self.pargs.connection
+
         db.init_connection({
-            'SQLALCHEMY_DATABASE_URI': 'postgresql://localhost/pooldin',
+            'SQLALCHEMY_DATABASE_URI': connection,
             'SQLALCHEMY_ECHO': True
         })
 
