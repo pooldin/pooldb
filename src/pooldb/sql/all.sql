@@ -117,6 +117,8 @@ CREATE TABLE "fee" (
 "id" serial8 NOT NULL,
 "name" varchar(64) NOT NULL,
 "description" text NOT NULL,
+"percentage" decimal(5,4) NOT NULL DEFAULT Decimal('0.0000'),
+"flat" decimal(8,4) NOT NULL DEFAULT Decimal('0.0000'),
 "created" timestamptz NOT NULL,
 "modified" timestamptz NOT NULL,
 "remote_ip" cidr,
