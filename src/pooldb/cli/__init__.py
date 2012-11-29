@@ -1,5 +1,6 @@
 from pooldlib import cli
 from pooldb.cli.install import InstallController
+from pooldb.cli.fixtures import FixturesController
 
 
 def run(*args, **kw):
@@ -21,4 +22,5 @@ class App(cli.App):
         label = 'pooldb'
         base_controller = RootController
         handlers = (cli.ShellController,
-                    InstallController)
+                    InstallController,
+                    FixturesController)
