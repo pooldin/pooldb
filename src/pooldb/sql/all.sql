@@ -31,7 +31,7 @@ CREATE TABLE "balance" (
 "enabled" bool NOT NULL DEFAULT True,
 "type" balance_type_enum NOT NULL,
 "user_id" int8,
-"community_id" int8,
+"campaign_id" int8,
 "currency_id" int8 NOT NULL,
 "amount" decimal(24,4) NOT NULL,
 "created" timestamptz NOT NULL,
@@ -40,7 +40,7 @@ CREATE TABLE "balance" (
 PRIMARY KEY ("id") 
 );
 
-COMMENT ON COLUMN "balance"."type" IS 'enumerations: [''user'', ''community'']';
+COMMENT ON COLUMN "balance"."type" IS 'enumerations: [''user'', ''campaign'']';
 
 CREATE TABLE "currency" (
 "id" serial8 NOT NULL,
@@ -62,7 +62,7 @@ CREATE INDEX "balance_number_index" ON "currency" ("number");
 CREATE TABLE "transaction" (
 "id" uuid NOT NULL,
 "balance_id" int8,
-"community_goal_id" int8,
+"campaign_goal_id" int8,
 "debit" decimal(24,4),
 "credit" decimal(24,4),
 "created" timestamptz NOT NULL,
@@ -70,11 +70,11 @@ CREATE TABLE "transaction" (
 PRIMARY KEY ("id") 
 );
 
-COMMENT ON COLUMN "transaction"."community_goal_id" IS 'Used to link a transaction with a specific community goal for auditing/analytics purposes.';
+COMMENT ON COLUMN "transaction"."campaign_goal_id" IS 'Used to link a transaction with a specific community goal for auditing/analytics purposes.';
 
 CREATE TABLE "transfer" (
 "id" uuid NOT NULL,
-"group_id" uuid NOT NULL,
+"record_id" uuid NOT NULL,
 "balance_id" int8 NOT NULL,
 "debit" decimal(24,4),
 "credit" decimal(24,4),
@@ -100,8 +100,8 @@ CREATE TABLE "external_ledger" (
 "id" uuid NOT NULL,
 "record_id" uuid NOT NULL,
 "record_table" record_table_enum NOT NULL,
-"party" varchar(255) NOT NULL,
-"external_reference_number" varchar(255),
+"processor" varchar(255) NOT NULL,
+"reference_number" varchar(255),
 "fee_id" int8,
 "currency_id" int8 NOT NULL,
 "debit" decimal(24,4),
@@ -117,8 +117,8 @@ CREATE TABLE "fee" (
 "id" serial8 NOT NULL,
 "name" varchar(64) NOT NULL,
 "description" text NOT NULL,
-"percentage" decimal(5,4) NOT NULL DEFAULT Decimal('0.0000'),
-"flat" decimal(8,4) NOT NULL DEFAULT Decimal('0.0000'),
+"fractional_pct" decimal(5,4) NOT NULL DEFAULT 0,
+"flat" decimal(8,4) NOT NULL DEFAULT 0,
 "created" timestamptz NOT NULL,
 "modified" timestamptz NOT NULL,
 "remote_ip" cidr,
@@ -126,7 +126,7 @@ CREATE TABLE "fee" (
 PRIMARY KEY ("id") 
 );
 
-CREATE TABLE "community" (
+CREATE TABLE "campaign" (
 "id" serial8 NOT NULL,
 "enabled" bool NOT NULL DEFAULT True,
 "name" varchar(255) NOT NULL,
@@ -139,12 +139,12 @@ CREATE TABLE "community" (
 PRIMARY KEY ("id") 
 );
 
-CREATE TABLE "community_goal" (
+CREATE TABLE "campaign_goal" (
 "id" serial8 NOT NULL,
 "enabled" bool NOT NULL DEFAULT True,
-"community_id" int8 NOT NULL,
+"campaign_id" int8 NOT NULL,
 "purchase_id" int8,
-"type" community_goal_type_enum NOT NULL,
+"type" campaign_goal_type_enum NOT NULL,
 "start" timestamptz NOT NULL,
 "end" timestamptz,
 "created" timestamptz NOT NULL,
@@ -152,15 +152,16 @@ CREATE TABLE "community_goal" (
 "remote_ip" cidr,
 "name" varchar(255) NOT NULL,
 "description" text NOT NULL,
+"predecessor_id" int8,
 PRIMARY KEY ("id") 
 );
 
-COMMENT ON COLUMN "community_goal"."type" IS 'enumerations: [''purchase'', ''petition'']';
+COMMENT ON COLUMN "campaign_goal"."type" IS 'enumerations: [''purchase'', ''petition'']';
 
-CREATE TABLE "community_goal_meta" (
+CREATE TABLE "campaign_goal_meta" (
 "id" serial8 NOT NULL,
 "enabled" bool NOT NULL,
-"community_goal_id" int8 NOT NULL,
+"campaign_goal_id" int8 NOT NULL,
 "key" varchar(255) NOT NULL,
 "value" text NOT NULL,
 "created" timestamptz NOT NULL,
@@ -181,22 +182,23 @@ CONSTRAINT "id" PRIMARY KEY ("id", "key") ,
 UNIQUE ("key")
 );
 
-CREATE TABLE "community_association" (
+CREATE TABLE "campaign_association" (
 "enabled" bool NOT NULL DEFAULT True,
-"community_id" int8 NOT NULL,
+"campaign_id" int8 NOT NULL,
 "user_id" int8 NOT NULL,
-"role" community_role_enum NOT NULL DEFAULT 'participant',
+"role" campaign_role_enum NOT NULL DEFAULT 'participant',
 "created" timestamptz NOT NULL,
 "modified" timestamptz NOT NULL,
 "remote_ip" cidr,
-PRIMARY KEY ("community_id", "user_id") 
+"pledge" decimal(24,4),
+PRIMARY KEY ("campaign_id", "user_id") 
 );
 
 CREATE TABLE "invitee" (
 "id" uuid NOT NULL,
 "enabled" bool NOT NULL DEFAULT True,
 "user_id" int8,
-"community_id" int8 NOT NULL,
+"campaign_id" int8 NOT NULL,
 "email" varchar(255) NOT NULL,
 "accepted" timestamptz,
 "created" timestamptz NOT NULL,
@@ -253,42 +255,56 @@ PRIMARY KEY ("id")
 
 COMMENT ON TABLE "user_purchase" IS 'This is unabashedly a bare-bones through table. ''nuff said.';
 
-CREATE TABLE "community_goal_ledger" (
+CREATE TABLE "campaign_goal_ledger" (
 "id" uuid NOT NULL,
 "created" timestamptz NOT NULL,
 "modified" timestamptz NOT NULL,
 "remote_ip" cidr,
-"community_id" int8 NOT NULL,
-"community_goal_id" int8 NOT NULL,
-"party_type" community_goal_ledger_target_type_enum NOT NULL,
+"campaign_id" int8 NOT NULL,
+"campaign_goal_id" int8 NOT NULL,
+"party_type" campaign_goal_ledger_target_type_enum NOT NULL,
 "party_id" int8 NOT NULL,
 "debit" decimal(24,4),
 "credit" decimal(24,4),
 PRIMARY KEY ("id") 
 );
 
-CREATE INDEX "community_goal_ledger_community_goal_id_index" ON "community_goal_ledger" ("community_goal_id" ASC);
-CREATE INDEX "community_goal_ledger_community_id_index" ON "community_goal_ledger" ("community_id" ASC);
-CREATE INDEX "community_goal_ledger_party_type_index" ON "community_goal_ledger" ("party_type" ASC);
-CREATE INDEX "community_goal_ledger_party_id_index" ON "community_goal_ledger" ("party_id" ASC);
-COMMENT ON COLUMN "community_goal_ledger"."party_type" IS 'party_type_enum: ''user'', ''community''';
-COMMENT ON COLUMN "community_goal_ledger"."party_id" IS 'The id of the target user/community.  Not constrained by foreign keys.';
+CREATE INDEX "campaign_goal_ledger_campaign_goal_id_index" ON "campaign_goal_ledger" ("campaign_goal_id" ASC);
+CREATE INDEX "campaign_goal_ledger_campaign_id_index" ON "campaign_goal_ledger" ("campaign_id" ASC);
+CREATE INDEX "campaign_goal_ledger_party_type_index" ON "campaign_goal_ledger" ("party_type" ASC);
+CREATE INDEX "campaign_goal_ledger_party_id_index" ON "campaign_goal_ledger" ("party_id" ASC);
+COMMENT ON COLUMN "campaign_goal_ledger"."party_type" IS 'party_type_enum: ''user'', ''campaign''';
+COMMENT ON COLUMN "campaign_goal_ledger"."party_id" IS 'The id of the target user/community.  Not constrained by foreign keys.';
 
-CREATE TABLE "community_goal_association" (
+CREATE TABLE "campaign_goal_association" (
+"enabled" bool DEFAULT True,
 "created" timestamptz NOT NULL,
 "modified" timestamptz NOT NULL,
 "remote_ip" cidr,
 "user_id" int8 NOT NULL,
-"community_id" int8 NOT NULL,
-"community_goal_id" int8 NOT NULL,
+"campaign_id" int8 NOT NULL,
+"campaign_goal_id" int8 NOT NULL,
 "participation" participation_enum,
-PRIMARY KEY ("community_id", "user_id", "community_goal_id") 
+"pledge" decimal(24,4),
+PRIMARY KEY ("campaign_id", "user_id", "campaign_goal_id") 
 );
 
-CREATE INDEX "community_goal_association_community_id_index" ON "community_goal_association" ("community_id" ASC);
-CREATE INDEX "community_goal_association_community_goal_id_index" ON "community_goal_association" ("community_goal_id" ASC);
-CREATE INDEX "community_goal_association_user_id_index" ON "community_goal_association" ("user_id" ASC);
-COMMENT ON COLUMN "community_goal_association"."participation" IS 'participation_enum values: ''opted-in'', ''opted-out'', ''participating'', ''nonparticipating''. ''participating'' -> ''opted-out'' && ''nonparticipating -> ''opted-in''';
+CREATE INDEX "campaign_goal_association_campaign_id_index" ON "campaign_goal_association" ("campaign_id" ASC);
+CREATE INDEX "campaign_goal_association_campaign_goal_id_index" ON "campaign_goal_association" ("campaign_goal_id" ASC);
+CREATE INDEX "campaign_goal_association_user_id_index" ON "campaign_goal_association" ("user_id" ASC);
+COMMENT ON COLUMN "campaign_goal_association"."participation" IS 'participation_enum values: ''opted-in'', ''opted-out'', ''participating'', ''nonparticipating''. ''participating'' -> ''opted-out'' && ''nonparticipating -> ''opted-in''';
+
+CREATE TABLE "campaign_meta" (
+"id" serial8 NOT NULL,
+"enabled" bool NOT NULL,
+"campaign_id" int8 NOT NULL,
+"key" varchar(255) NOT NULL,
+"value" text NOT NULL,
+"created" timestamptz NOT NULL,
+"modified" timestamptz NOT NULL,
+"remote_ip" cidr,
+PRIMARY KEY ("id") 
+);
 
 
 ALTER TABLE "user_meta" ADD CONSTRAINT "user_meta_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "user" ("id");
@@ -297,28 +313,30 @@ ALTER TABLE "balance" ADD CONSTRAINT "balance_currency_id_fk" FOREIGN KEY ("curr
 ALTER TABLE "transfer" ADD CONSTRAINT "transfer_balance_id_fk" FOREIGN KEY ("balance_id") REFERENCES "balance" ("id");
 ALTER TABLE "exchange" ADD CONSTRAINT "exchange_balance_id_fk" FOREIGN KEY ("balance_id") REFERENCES "balance" ("id");
 ALTER TABLE "transaction" ADD CONSTRAINT "transaction_balance_id_fk" FOREIGN KEY ("balance_id") REFERENCES "balance" ("id");
-ALTER TABLE "community_goal" ADD CONSTRAINT "community_goal_community_id_fk" FOREIGN KEY ("community_id") REFERENCES "community" ("id");
-ALTER TABLE "community_goal_meta" ADD CONSTRAINT "community_meta_key_community_goal_id_fk" FOREIGN KEY ("community_goal_id") REFERENCES "community_goal" ("id");
-ALTER TABLE "balance" ADD CONSTRAINT "balance_community_id_fk" FOREIGN KEY ("community_id") REFERENCES "community" ("id");
-ALTER TABLE "community_association" ADD CONSTRAINT "community_association_community_id_fk" FOREIGN KEY ("community_id") REFERENCES "community" ("id");
-ALTER TABLE "community_association" ADD CONSTRAINT "community_association_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "user" ("id");
+ALTER TABLE "campaign_goal" ADD CONSTRAINT "campaign_goal_campaign_id_fk" FOREIGN KEY ("campaign_id") REFERENCES "campaign" ("id");
+ALTER TABLE "campaign_goal_meta" ADD CONSTRAINT "campaign_meta_key_campaign_goal_id_fk" FOREIGN KEY ("campaign_goal_id") REFERENCES "campaign_goal" ("id");
+ALTER TABLE "balance" ADD CONSTRAINT "balance_campaign_id_fk" FOREIGN KEY ("campaign_id") REFERENCES "campaign" ("id");
+ALTER TABLE "campaign_association" ADD CONSTRAINT "campaign_association_campaign_id_fk" FOREIGN KEY ("campaign_id") REFERENCES "campaign" ("id");
+ALTER TABLE "campaign_association" ADD CONSTRAINT "campaign_association_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "user" ("id");
 ALTER TABLE "invitee" ADD CONSTRAINT "invitee_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "user" ("id");
-ALTER TABLE "invitee" ADD CONSTRAINT "invitee_community_id_fk" FOREIGN KEY ("community_id") REFERENCES "community" ("id");
+ALTER TABLE "invitee" ADD CONSTRAINT "invitee_campaign_id_fk" FOREIGN KEY ("campaign_id") REFERENCES "campaign" ("id");
 ALTER TABLE "exchange" ADD CONSTRAINT "exchange_debit_currency_id_fk" FOREIGN KEY ("debit_currency_id") REFERENCES "currency" ("id");
 ALTER TABLE "external_ledger" ADD CONSTRAINT "external_ledger_fee_id_fk" FOREIGN KEY ("fee_id") REFERENCES "fee" ("id");
 ALTER TABLE "external_ledger" ADD CONSTRAINT "external_ledger_currency_id" FOREIGN KEY ("currency_id") REFERENCES "currency" ("id");
 ALTER TABLE "internal_ledger" ADD CONSTRAINT "internal_ledger_fee_id_fk" FOREIGN KEY ("fee_id") REFERENCES "fee" ("id");
 ALTER TABLE "internal_ledger" ADD CONSTRAINT "internal_ledger_currency_id_fk" FOREIGN KEY ("currency_id") REFERENCES "currency" ("id");
 ALTER TABLE "exchange" ADD CONSTRAINT "exchange_credit_currency_id_fk" FOREIGN KEY ("credit_currency_id") REFERENCES "currency" ("id");
-ALTER TABLE "community_goal" ADD CONSTRAINT "community_goal_purchases_id_fk" FOREIGN KEY ("purchase_id") REFERENCES "purchase" ("id");
+ALTER TABLE "campaign_goal" ADD CONSTRAINT "campaign_goal_purchases_id_fk" FOREIGN KEY ("purchase_id") REFERENCES "purchase" ("id");
 ALTER TABLE "user_purchase" ADD CONSTRAINT "user_purchase_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "user" ("id");
 ALTER TABLE "user_purchase" ADD CONSTRAINT "user_purchase_purchase_id_fk" FOREIGN KEY ("purchase_id") REFERENCES "purchase" ("id");
 ALTER TABLE "purchase" ADD CONSTRAINT "purchase_refund_external_ledger_id_fk" FOREIGN KEY ("refund_ledger_id") REFERENCES "external_ledger" ("id");
 ALTER TABLE "purchase" ADD CONSTRAINT "purchase_purchase_external_ledger_id_fk" FOREIGN KEY ("purchase_ledger_id") REFERENCES "external_ledger" ("id");
-ALTER TABLE "transaction" ADD CONSTRAINT "transaction_community_goal_id_fk" FOREIGN KEY ("community_goal_id") REFERENCES "community_goal" ("id");
-ALTER TABLE "community_goal_ledger" ADD CONSTRAINT "community_goal_ledger_community_id_fk" FOREIGN KEY ("community_id") REFERENCES "community" ("id");
-ALTER TABLE "community_goal_ledger" ADD CONSTRAINT "community_goal_ledger_community_goal_id_fk" FOREIGN KEY ("community_goal_id") REFERENCES "community_goal" ("id");
-ALTER TABLE "community_goal_association" ADD CONSTRAINT "community_goal_association_community_id_fk" FOREIGN KEY ("community_id") REFERENCES "community" ("id");
-ALTER TABLE "community_goal_association" ADD CONSTRAINT "community_goal_association_community_goal_id_fk" FOREIGN KEY ("community_goal_id") REFERENCES "community_goal" ("id");
-ALTER TABLE "community_goal_association" ADD CONSTRAINT "community_goal_association_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "user" ("id");
+ALTER TABLE "transaction" ADD CONSTRAINT "transaction_campaign_goal_id_fk" FOREIGN KEY ("campaign_goal_id") REFERENCES "campaign_goal" ("id");
+ALTER TABLE "campaign_goal_ledger" ADD CONSTRAINT "campaign_goal_ledger_campaign_id_fk" FOREIGN KEY ("campaign_id") REFERENCES "campaign" ("id");
+ALTER TABLE "campaign_goal_ledger" ADD CONSTRAINT "campaign_goal_ledger_campaign_goal_id_fk" FOREIGN KEY ("campaign_goal_id") REFERENCES "campaign_goal" ("id");
+ALTER TABLE "campaign_goal_association" ADD CONSTRAINT "campaign_goal_association_campaign_id_fk" FOREIGN KEY ("campaign_id") REFERENCES "campaign" ("id");
+ALTER TABLE "campaign_goal_association" ADD CONSTRAINT "campaign_goal_association_campaign_goal_id_fk" FOREIGN KEY ("campaign_goal_id") REFERENCES "campaign_goal" ("id");
+ALTER TABLE "campaign_goal_association" ADD CONSTRAINT "campaign_goal_association_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "user" ("id");
+ALTER TABLE "campaign_meta" ADD CONSTRAINT "campaign_meta_campaign_id_fk" FOREIGN KEY ("campaign_id") REFERENCES "campaign" ("id");
+ALTER TABLE "campaign_goal" ADD CONSTRAINT "campaign_goal_predecessor_id_fk" FOREIGN KEY ("predecessor_id") REFERENCES "campaign_goal" ("id");
 
