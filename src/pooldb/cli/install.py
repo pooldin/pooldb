@@ -50,6 +50,7 @@ class InstallController(controller.CementBaseController):
     def sql(self):
         sql = self.load_sql('types.sql')
         sql += self.load_sql('all.sql')
+        sql += self.load_sql('extensions.sql')
         return sql
 
     def load_sql(self, *path):
