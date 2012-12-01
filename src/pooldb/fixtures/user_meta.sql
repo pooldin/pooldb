@@ -4,7 +4,7 @@ PREPARE userMetaInsert (int8, varchar, varchar, timestamptz, timestamptz) AS
 EXECUTE userMetaInsert (1, 'email', 'brian@poold.in', now(), now());
 EXECUTE userMetaInsert (2, 'email', 'kevin@poold.in', now(), now());
 EXECUTE userMetaInsert (3, 'email', 'patrick@poold.in', now(), now());
-EXECUTE userMetaInsert (4, 'email', 'colin@poold.in', now(), now());
+EXECUTE userMetaInsert (4, 'email', 'collin@poold.in', now(), now());
 EXECUTE userMetaInsert (5, 'email', 'greg@poold.in', now(), now());
 EXECUTE userMetaInsert (6, 'email', 'sung@poold.in', now(), now());
 DEALLOCATE userMetaInsert;
