@@ -108,6 +108,7 @@ CREATE TABLE "external_ledger" (
 "credit" decimal(24,4),
 "created" timestamptz NOT NULL,
 "remote_ip" cidr,
+"full_name" varchar(255),
 PRIMARY KEY ("id") 
 );
 
