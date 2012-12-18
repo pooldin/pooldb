@@ -1,5 +1,5 @@
 from pooldlib import cli
-from pooldb.cli.install import InstallController
+from pooldb.cli.install import InstallController, DBMigrationController
 from pooldb.cli.fixtures import FixturesController
 
 
@@ -23,4 +23,5 @@ class App(cli.App):
         base_controller = RootController
         handlers = (cli.ShellController,
                     InstallController,
+                    DBMigrationController,
                     FixturesController)
